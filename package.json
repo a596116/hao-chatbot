@@ -1,0 +1,47 @@
+{
+  "name": "hao-chatbot",
+  "version": "1.0.0",
+  "description": "一個可嵌入任何網頁的 AI 聊天機器人組件",
+  "author": "Hao Dai",
+  "license": "MIT",
+  "keywords": [
+    "chatbot",
+    "vue3",
+    "ai",
+    "chat",
+    "element-plus-x"
+  ],
+  "main": "./dist/hao-chatbot.umd.js",
+  "module": "./dist/hao-chatbot.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/hao-chatbot.es.js",
+      "require": "./dist/hao-chatbot.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build && vite build --mode standalone",
+    "build:lib": "vue-tsc && vite build",
+    "build:standalone": "vue-tsc && vite build --mode standalone",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.21",
+    "vue-element-plus-x": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4",
+    "vite-plugin-dts": "^3.7.3",
+    "vue-tsc": "^2.0.0"
+  }
+}
