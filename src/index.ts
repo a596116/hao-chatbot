@@ -1,25 +1,23 @@
-import { App, Plugin } from 'vue'
+import { App } from 'vue'
 import Chatbot from './components/Chatbot.vue'
 
 // 導出組件
 export { Chatbot }
 export * from './types/type'
 
-// Vue 插件安裝函數
-const install: Plugin = (app: App) => {
-  app.component('HaoChatbot', Chatbot)
-}
+// 為組件添加 install 方法，讓它既可以作為插件使用，也可以直接作為組件使用
+const HaoChatbot = Object.assign(Chatbot, {
+  install: (app: App) => {
+    app.component('HaoChatbot', Chatbot)
+  },
+})
 
-// 導出插件
-export default {
-  install,
-}
+// 導出插件和組件
+export default HaoChatbot
 
 // 支持 UMD 格式的全局註冊
 if (typeof window !== 'undefined' && (window as any).Vue) {
-  ;(window as any).HaoChatbot = {
-    install,
-  }
+  ;(window as any).HaoChatbot = HaoChatbot
 }
 
 // 類型定義
