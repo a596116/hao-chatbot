@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
         name: 'HaoChatbot',
         formats: isStandalone ? ['umd'] : ['es', 'cjs'],
         fileName: (format) =>
-          isStandalone ? `index.standalone.${format}.js` : `index.js`,
+          isStandalone ? `index.standalone.${format}.js` : `index.${format}.js`,
       },
       rollupOptions: {
         // 獨立版本不 externalize Vue，把 Vue 打包進去
