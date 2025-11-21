@@ -1,6 +1,6 @@
 {
   "name": "hao-chatbot",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "一個可嵌入任何網頁的 AI 聊天機器人組件",
   "author": "Hao Dai",
   "license": "MIT",
