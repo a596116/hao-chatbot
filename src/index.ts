@@ -17,4 +17,4 @@
 //   ;(window as any).HaoChatbot = Chatbot
 // }
 
-export { default as HaoChatbot } from './components/Chatbot.vue'
+export * from './components'
