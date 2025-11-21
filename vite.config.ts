@@ -29,11 +29,9 @@ export default defineConfig(({ mode }) => {
           ? resolve(__dirname, 'src/standalone.ts')
           : resolve(__dirname, 'src/index.ts'),
         name: 'HaoChatbot',
-        formats: isStandalone ? ['umd'] : ['es', 'umd'],
+        formats: isStandalone ? ['umd'] : ['es', 'cjs'],
         fileName: (format) =>
-          isStandalone
-            ? `hao-chatbot.standalone.${format}.js`
-            : `hao-chatbot.${format}.js`,
+          isStandalone ? `index.standalone.${format}.js` : `index.js`,
       },
       rollupOptions: {
         // 獨立版本不 externalize Vue，把 Vue 打包進去
@@ -56,6 +54,13 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),
+      },
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+        },
       },
     },
   }

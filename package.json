@@ -11,19 +11,21 @@
     "chat",
     "element-plus-x"
   ],
-  "main": "./dist/hao-chatbot.umd.js",
-  "module": "./dist/hao-chatbot.es.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/hao-chatbot.es.js",
-      "require": "./dist/hao-chatbot.umd.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "./dist/style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map"
   ],
   "scripts": {
     "dev": "vite",
