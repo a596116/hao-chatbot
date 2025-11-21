@@ -1,6 +1,6 @@
 {
   "name": "hao-chatbot",
-  "version": "1.0.8",
+  "version": "1.0.6",
   "description": "一個可嵌入任何網頁的 AI 聊天機器人組件",
   "author": "Hao Dai",
   "license": "MIT",
@@ -12,16 +12,16 @@
     "element-plus-x"
   ],
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs.js",
+  "module": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.cjs",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./style.css": "./dist/style.css"
+    "./dist/style.css": "./dist/style.css"
   },
   "files": [
     "dist",
