@@ -16,15 +16,10 @@
 </template>
 
 <script setup lang="ts">
+import { IMessage } from '@/types/type'
 import { ref, computed } from 'vue'
 import { BubbleList } from 'vue-element-plus-x'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/BubbleList'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: number
-}
 
 type BubbleItem = BubbleListItemProps & {
   key: number
@@ -33,14 +28,16 @@ type BubbleItem = BubbleListItemProps & {
 }
 
 interface ChatListProps {
-  messages: Message[]
+  messages: IMessage[]
   isLoading?: boolean
   maxHeight?: string
+  avatarUrl?: string
 }
 
 const props = withDefaults(defineProps<ChatListProps>(), {
   isLoading: false,
   maxHeight: '400px',
+  avatarUrl: '',
 })
 
 const bubbleListRef = ref<any>()
@@ -57,9 +54,9 @@ const bubbleItems = computed<BubbleItem[]>(() => {
     variant: msg.role === 'user' ? 'outlined' : 'filled',
     isMarkdown: false,
     typing: false,
-    avatar: msg.role === 'user' ? '👤' : '🤖',
-    avatarSize: '32px',
-    avatarGap: '12px',
+    avatar: msg.role === 'user' ? undefined : props.avatarUrl,
+    avatarSize: msg.role === 'user' ? '0' : '32px',
+    avatarGap: msg.role === 'user' ? '0' : '12px',
     timestamp: msg.timestamp,
   }))
 
@@ -75,7 +72,7 @@ const bubbleItems = computed<BubbleItem[]>(() => {
       variant: 'filled',
       isMarkdown: false,
       typing: false,
-      avatar: '🤖',
+      avatar: props.avatarUrl,
       avatarSize: '32px',
       avatarGap: '12px',
       timestamp: Date.now(),
@@ -117,7 +114,10 @@ defineExpose({
 
 /* 自定義用戶消息氣泡顏色 */
 .chat-list :deep(.el-bubble--outlined) {
-  background: var(--chatbot-primary-gradient, linear-gradient(135deg, #409EFF 0%, #337ecc 100%));
+  background: var(
+    --chatbot-primary-gradient,
+    linear-gradient(135deg, #409eff 0%, #337ecc 100%)
+  );
   color: white;
   border: none;
 }
@@ -130,4 +130,3 @@ defineExpose({
   margin-left: 44px;
 }
 </style>
-

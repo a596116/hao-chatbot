@@ -37,6 +37,7 @@
           :messages="messages"
           :is-loading="isLoading"
           :max-height="'100%'"
+          :avatar-url="avatarUrl"
         />
 
         <!-- 輸入區域 -->
@@ -58,36 +59,20 @@ import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
 import ChatHeader from './ChatHeader.vue'
 import ChatList from './ChatList.vue'
 import ChatSender from './ChatSender.vue'
+import { IChatbotProps, IMessage } from '@/types/type'
+import { DEFAULT_AVATAR_SVG } from '@/utils/constants'
 
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: number
-}
-
-interface ChatbotProps {
-  title?: string
-  placeholder?: string
-  position?: {
-    bottom?: string
-    right?: string
-    left?: string
-  }
-  apiEndpoint?: string
-  apiKey?: string
-  width?: string
-  height?: string
-  primaryColor?: string | { from: string; to: string }
-}
-
-const props = withDefaults(defineProps<ChatbotProps>(), {
+const props = withDefaults(defineProps<IChatbotProps>(), {
   title: 'AI 助手',
   placeholder: '輸入訊息... (Shift+Enter 換行)',
   position: () => ({ bottom: '20px', right: '20px' }),
   width: '400px',
   height: '600px',
   primaryColor: '#409EFF', // 默認藍色
+  tokenHeaderName: 'Authorization', // 默認使用 Authorization header
 })
+
+const avatarUrl = computed(() => props.avatarUrl || DEFAULT_AVATAR_SVG)
 
 const emit = defineEmits<{
   (e: 'message-sent', message: string): void
@@ -97,7 +82,7 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const isFullscreen = ref(false)
 const inputMessage = ref('')
-const messages = ref<Message[]>([
+const messages = ref<IMessage[]>([
   {
     role: 'assistant',
     content: '您好！我是 AI 助手，有什麼可以幫助您的嗎？',
@@ -107,6 +92,7 @@ const messages = ref<Message[]>([
 const isLoading = ref(false)
 const chatListRef = ref<any>()
 const chatSenderRef = ref<any>()
+const currentToken = ref<string | undefined>(props.token)
 
 const buttonStyle = computed(() => ({
   bottom: props.position.bottom,
@@ -225,12 +211,20 @@ const handleSend = async () => {
     scrollToBottom()
   })
 
-  // 模擬 AI 回應
+  // 發送 API 請求
   isLoading.value = true
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const response = await mockApiCall(message)
+    let response: string
+
+    // 如果有 apiEndpoint，使用真實 API
+    if (props.apiEndpoint) {
+      response = await callApi(message)
+    } else {
+      // 否則使用模擬 API
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      response = await mockApiCall(message)
+    }
 
     messages.value.push({
       role: 'assistant',
@@ -255,6 +249,73 @@ const handleSend = async () => {
   }
 }
 
+// 真實 API 調用
+const callApi = async (message: string): Promise<string> => {
+  if (!props.apiEndpoint) {
+    throw new Error('API endpoint 未設置')
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  // 添加 token（優先使用 currentToken，如果沒有則使用 props.token）
+  const token = currentToken.value || props.token
+  if (token) {
+    // 如果 tokenHeaderName 是 'Authorization'，自動添加 'Bearer ' 前綴
+    if (
+      props.tokenHeaderName === 'Authorization' &&
+      !token.startsWith('Bearer ')
+    ) {
+      headers[props.tokenHeaderName] = `Bearer ${token}`
+    } else {
+      headers[props.tokenHeaderName] = token
+    }
+  }
+
+  // 如果有 apiKey，也添加到 headers（用於向後兼容）
+  if (props.apiKey) {
+    headers['Authorization'] = `Bearer ${props.apiKey}`
+  }
+
+  const response = await fetch(props.apiEndpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      message,
+      messages: messages.value.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(
+      `API 請求失敗: ${response.status} ${response.statusText} - ${errorText}`
+    )
+  }
+
+  const data = await response.json()
+
+  // 支持多種常見的 API 響應格式
+  if (data.reply) {
+    return data.reply
+  } else if (data.message) {
+    return data.message
+  } else if (data.content) {
+    return data.content
+  } else if (data.choices && data.choices[0] && data.choices[0].message) {
+    // OpenAI 格式
+    return data.choices[0].message.content
+  } else if (typeof data === 'string') {
+    return data
+  } else {
+    throw new Error('無法解析 API 響應格式')
+  }
+}
+
 // 模擬 API 調用
 const mockApiCall = async (message: string): Promise<string> => {
   const responses = [
@@ -266,6 +327,16 @@ const mockApiCall = async (message: string): Promise<string> => {
   ]
   return responses[Math.floor(Math.random() * responses.length)] + ' ' + message
 }
+
+// 暴露方法供外部調用，用於動態設置 token
+const setToken = (token: string | undefined) => {
+  currentToken.value = token
+}
+
+// 暴露方法
+defineExpose({
+  setToken,
+})
 
 const scrollToBottom = () => {
   nextTick(() => {

@@ -77,13 +77,12 @@
     <script src="./dist/hao-chatbot.standalone.umd.js"></script>
 
     <script>
-      // 檢查 HaoChatbot 是否載入
       if (typeof HaoChatbot !== 'undefined') {
         document.getElementById('status').textContent = '✅ 載入成功'
         document.getElementById('status').style.background = '#10b981'
 
         // 初始化 chatbot
-        HaoChatbot.mount('#chatbot', {
+        const chatbot = HaoChatbot.mount({
           title: '🤖 測試助手123',
           placeholder: '測試訊息...',
           position: {
@@ -91,6 +90,9 @@
             right: '20px',
           },
         })
+        setTimeout(() => {
+          chatbot.setToken('1234567890')
+        }, 5000)
 
         console.log('✅ Chatbot 已成功初始化（無需 Vue.js）')
       } else {

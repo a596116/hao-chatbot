@@ -35,9 +35,9 @@
   <!-- 引入獨立版本（包含 Vue，無需額外引入） -->
   <script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
   
-  <!-- 初始化 -->
+  <!-- 初始化（會自動創建 DOM 元素） -->
   <script>
-    HaoChatbot.mount('#chatbot', {
+    HaoChatbot.mount({
       title: '智能客服',
       placeholder: '請問有什麼可以幫助您？'
     })
@@ -153,13 +153,11 @@ const handleMessageReceived = (message: string) => {
 </head>
 <body>
   <h1>歡迎！</h1>
-  
-  <div id="chatbot"></div>
 
   <script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
   <script>
-    // 超級簡單的 API
-    HaoChatbot.mount('#chatbot', {
+    // 超級簡單的 API（會自動創建 DOM 元素）
+    HaoChatbot.mount({
       title: '🤖 智能助手',
       placeholder: '有什麼可以幫助您？',
       position: {
@@ -184,7 +182,9 @@ const handleMessageReceived = (message: string) => {
 | `width` | `string` | `'400px'` | 聊天窗口寬度 |
 | `height` | `string` | `'600px'` | 聊天窗口高度 |
 | `apiEndpoint` | `string` | `undefined` | API 端點地址 |
-| `apiKey` | `string` | `undefined` | API 密鑰 |
+| `apiKey` | `string` | `undefined` | API 密鑰（向後兼容） |
+| `token` | `string` | `undefined` | 認證 token（用於 API 請求） |
+| `tokenHeaderName` | `string` | `'Authorization'` | Token 的 HTTP header 名稱 |
 
 ## 📡 Events 事件
 
@@ -220,24 +220,168 @@ const handleMessageReceived = (message: string) => {
 
 ## 🔌 整合 AI API
 
-目前組件使用模擬回覆，你可以通過修改源代碼來整合真實的 AI API：
+組件現在支持真實的 API 調用！只需設置 `apiEndpoint` 即可自動使用真實 API，否則會使用模擬回覆。
 
-```typescript
-// 在 Chatbot.vue 中
-const mockApiCall = async (message: string): Promise<string> => {
-  // 調用你的 AI API
-  const response = await fetch(props.apiEndpoint || 'YOUR_API_ENDPOINT', {
+### 基本使用（帶 Token）
+
+```vue
+<template>
+  <HaoChatbot
+    api-endpoint="https://api.example.com/chat"
+    :token="userToken"
+    token-header-name="Authorization"
+  />
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { HaoChatbot } from 'hao-chatbot'
+
+const userToken = ref('your-token-here')
+</script>
+```
+
+### 動態設置 Token（登入後）
+
+如果 token 是在用戶登入後才獲得的，你可以通過組件實例動態設置：
+
+```vue
+<template>
+  <HaoChatbot
+    ref="chatbotRef"
+    api-endpoint="https://api.example.com/chat"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { HaoChatbot } from 'hao-chatbot'
+
+const chatbotRef = ref()
+
+// 用戶登入後設置 token
+onMounted(async () => {
+  // 模擬登入流程
+  const loginResponse = await fetch('/api/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${props.apiKey}`
-    },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ username: 'user', password: 'pass' })
   })
+  const { token } = await loginResponse.json()
   
-  const data = await response.json()
-  return data.reply
+  // 動態設置 token
+  chatbotRef.value?.setToken(token)
+})
+</script>
+```
+
+### 使用獨立版本（CDN）
+
+組件會自動創建 DOM 元素並添加到頁面，無需手動創建容器。
+
+#### 方式 1：初始化時設置 token
+
+```html
+<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script>
+  // 直接調用 mount，會自動創建並添加到頁面
+  const chatbot = HaoChatbot.mount({
+    apiEndpoint: 'https://api.example.com/chat',
+    token: 'your-token-here'  // 如果初始化時就有 token
+  })
+</script>
+```
+
+#### 方式 2：初始化後動態設置 token（推薦）
+
+如果你的 token 是在用戶登入後才獲得的，可以這樣使用：
+
+```html
+<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script>
+  // 先初始化 chatbot（不傳入 token），會自動創建 DOM 元素
+  const chatbot = HaoChatbot.mount({
+    apiEndpoint: 'https://api.example.com/chat'
+    // 注意：這裡不傳 token，因為登入後才會有
+  })
+
+  // 用戶登入後，動態設置 token
+  async function handleLogin() {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'user',
+          password: 'pass'
+        })
+      })
+      
+      const data = await response.json()
+      
+      // 登入成功後，設置 token
+      if (data.token) {
+        chatbot.setToken(data.token)
+        console.log('Token 已設置，現在可以發送訊息了')
+      }
+    } catch (error) {
+      console.error('登入失敗:', error)
+    }
+  }
+
+  // 或者從 localStorage 讀取已保存的 token
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedToken = localStorage.getItem('authToken')
+    if (savedToken) {
+      chatbot.setToken(savedToken)
+    }
+  })
+
+  // 如果需要移除組件（例如登出時）
+  function handleLogout() {
+    chatbot.destroy()  // 會卸載組件並移除 DOM 元素
+  }
+</script>
+```
+
+**重要提示**：
+- `setToken()` 方法會立即生效，後續發送的所有訊息都會帶上這個 token
+- `destroy()` 方法可以卸載組件並移除 DOM 元素
+- 組件會自動創建一個 `id="hao-chatbot-container"` 的 div 元素並添加到 `body`
+
+### API 請求格式
+
+組件會發送以下格式的請求：
+
+```json
+{
+  "message": "用戶輸入的消息",
+  "messages": [
+    { "role": "user", "content": "..." },
+    { "role": "assistant", "content": "..." }
+  ]
 }
+```
+
+### API 響應格式
+
+組件支持多種常見的響應格式：
+
+- `{ "reply": "..." }`
+- `{ "message": "..." }`
+- `{ "content": "..." }`
+- `{ "choices": [{ "message": { "content": "..." } }] }` (OpenAI 格式)
+- 直接返回字符串
+
+### 自定義 Token Header
+
+如果你的 API 使用不同的 header 名稱：
+
+```vue
+<HaoChatbot
+  api-endpoint="https://api.example.com/chat"
+  token="your-token"
+  token-header-name="X-Auth-Token"
+/>
 ```
 
 ## 📊 版本比較
@@ -251,6 +395,54 @@ const mockApiCall = async (message: string): Promise<string> => {
 | CDN URL | `/hao-chatbot.umd.js` | `/hao-chatbot.standalone.umd.js` |
 
 **推薦使用獨立版本**，除非你的項目已經在使用 Vue 3。
+
+## 💡 TypeScript 支持
+
+本組件提供完整的 TypeScript 類型定義，安裝後即可獲得類型提示。
+
+### 使用類型
+
+```typescript
+import { Chatbot } from 'hao-chatbot'
+import type { ChatbotProps, ChatbotInstance, Message } from 'hao-chatbot'
+
+// 使用 Props 類型
+const props: ChatbotProps = {
+  title: 'AI 助手',
+  apiEndpoint: 'https://api.example.com/chat',
+  token: 'your-token',
+}
+
+// 使用實例類型（ref）
+const chatbotRef = ref<ChatbotInstance>()
+
+// 動態設置 token（有完整類型提示）
+chatbotRef.value?.setToken('new-token')
+```
+
+### 全局組件類型
+
+安裝插件後，在 Vue 模板中使用 `<HaoChatbot>` 時，會自動獲得 props 類型提示和自動完成。
+
+```vue
+<template>
+  <!-- 自動提示所有可用的 props -->
+  <HaoChatbot
+    ref="chatbot"
+    title="AI 助手"
+    :token="token"
+    @message-sent="handleMessageSent"
+  />
+</template>
+
+<script setup lang="ts">
+import type { ChatbotInstance } from 'hao-chatbot'
+
+const chatbot = ref<ChatbotInstance>()
+</script>
+```
+
+詳細的類型定義說明請參考 [TYPE_DEFINITIONS.md](./TYPE_DEFINITIONS.md)。
 
 ## 🎯 使用場景
 

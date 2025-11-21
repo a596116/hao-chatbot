@@ -3,6 +3,7 @@ import Chatbot from './components/Chatbot.vue'
 
 // 導出組件
 export { Chatbot }
+export * from './types/type'
 
 // Vue 插件安裝函數
 const install: Plugin = (app: App) => {
@@ -32,6 +33,9 @@ export interface ChatbotProps {
   }
   apiEndpoint?: string
   apiKey?: string
+  token?: string
+  tokenHeaderName?: string
   width?: string
   height?: string
+  primaryColor?: string | { from: string; to: string }
 }
