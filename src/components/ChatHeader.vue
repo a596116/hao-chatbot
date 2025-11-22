@@ -5,7 +5,11 @@
       <span>{{ title }}</span>
     </div>
     <div class="header-actions">
-      <button class="action-btn" @click="$emit('toggle-fullscreen')" title="全屏">
+      <button
+        class="action-btn"
+        @click="$emit('toggle-fullscreen')"
+        title="全屏"
+      >
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
           <path
             d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
@@ -42,7 +46,10 @@ defineEmits<{
 
 <style scoped>
 .chat-header {
-  background: var(--chatbot-primary-gradient, linear-gradient(135deg, #409EFF 0%, #337ecc 100%));
+  background: var(
+    --chatbot-primary-gradient,
+    linear-gradient(135deg, #409eff 0%, #337ecc 100%)
+  );
   color: white;
   padding: 16px 20px;
   display: flex;
@@ -85,4 +92,3 @@ defineEmits<{
   background: rgba(255, 255, 255, 0.3);
 }
 </style>
-

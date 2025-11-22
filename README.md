@@ -33,7 +33,7 @@
   <div id="chatbot"></div>
 
   <!-- 引入獨立版本（包含 Vue，無需額外引入） -->
-  <script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+  <script src="https://unpkg.com/hao-chatbot/dist/index.standalone.umd.js"></script>
   
   <!-- 初始化（會自動創建 DOM 元素） -->
   <script>
@@ -50,43 +50,8 @@
 - `hao-chatbot.standalone.umd.js`: 110KB (gzip: 42KB)
 - `style.css`: 4.5KB (gzip: 1.3KB)
 
-### 方式二：CDN 引入（需要 Vue）
 
-如果你的網站已經使用了 Vue 3，可以使用這個更小的版本：
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" href="https://unpkg.com/hao-chatbot/dist/style.css">
-</head>
-<body>
-  <div id="app">
-    <hao-chatbot title="客服助手"></hao-chatbot>
-  </div>
-
-  <!-- 先引入 Vue 3 -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  
-  <!-- 再引入 Chatbot -->
-  <script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.umd.js"></script>
-  
-  <script>
-    const { createApp } = Vue
-    createApp({})
-      .use(HaoChatbot)
-      .mount('#app')
-  </script>
-</body>
-</html>
-```
-
-**文件大小：**
-- `vue.global.js`: ~130KB (來自 Vue.js 官方)
-- `hao-chatbot.umd.js`: 5.5KB (gzip: 2.4KB)
-- `style.css`: 4.5KB (gzip: 1.3KB)
-
-### 方式三：NPM 安裝
+### 方式二：NPM 安裝
 
 ```bash
 npm install hao-chatbot
@@ -126,17 +91,24 @@ app.mount('#app')
       height="600px"
       @message-sent="handleMessageSent"
       @message-received="handleMessageReceived"
+      @attachment-selected="handleAttachment"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import { HaoChatbot, type IAttachmentPayload } from 'hao-chatbot'
+
 const handleMessageSent = (message: string) => {
   console.log('用戶發送:', message)
 }
 
 const handleMessageReceived = (message: string) => {
   console.log('AI 回覆:', message)
+}
+
+const handleAttachment = (payload: IAttachmentPayload) => {
+  console.log('用戶選擇的附件:', payload.type, payload.files)
 }
 </script>
 ```
@@ -154,7 +126,7 @@ const handleMessageReceived = (message: string) => {
 <body>
   <h1>歡迎！</h1>
 
-  <script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+  <script src="https://unpkg.com/hao-chatbot/dist/index.standalone.umd.js"></script>
   <script>
     // 超級簡單的 API（會自動創建 DOM 元素）
     HaoChatbot.mount({
@@ -192,6 +164,9 @@ const handleMessageReceived = (message: string) => {
 |--------|------|------|
 | `message-sent` | `(message: string)` | 用戶發送消息時觸發 |
 | `message-received` | `(message: string)` | 收到 AI 回覆時觸發 |
+| `attachment-selected` | `(payload: IAttachmentPayload)` | 用戶選擇附件時觸發 |
+
+> `IAttachmentPayload` 內容為 `{ type: 'media' | 'code-file' | 'code-folder', files: File[] }`，可用於自行上傳至後端。
 
 ## 🎨 自定義樣式
 
@@ -281,7 +256,7 @@ onMounted(async () => {
 #### 方式 1：初始化時設置 token
 
 ```html
-<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script src="https://unpkg.com/hao-chatbot/dist/index.standalone.umd.js"></script>
 <script>
   // 直接調用 mount，會自動創建並添加到頁面
   const chatbot = HaoChatbot.mount({
@@ -296,7 +271,7 @@ onMounted(async () => {
 如果你的 token 是在用戶登入後才獲得的，可以這樣使用：
 
 ```html
-<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script src="https://unpkg.com/hao-chatbot/dist/index.standalone.umd.js"></script>
 <script>
   // 先初始化 chatbot（不傳入 token），會自動創建 DOM 元素
   const chatbot = HaoChatbot.mount({
@@ -479,24 +454,24 @@ pnpm preview
 ### unpkg（推薦）
 ```html
 <!-- 獨立版本 -->
-<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script src="https://unpkg.com/hao-chatbot/dist/index.standalone.umd.js"></script>
 
 <!-- 常規版本 -->
-<script src="https://unpkg.com/hao-chatbot/dist/hao-chatbot.umd.js"></script>
+<script src="https://unpkg.com/hao-chatbot/dist/index.umd.js"></script>
 ```
 
 ### jsDelivr
 ```html
 <!-- 獨立版本 -->
-<script src="https://cdn.jsdelivr.net/npm/hao-chatbot/dist/hao-chatbot.standalone.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hao-chatbot/dist/index.standalone.umd.js"></script>
 
 <!-- 常規版本 -->
-<script src="https://cdn.jsdelivr.net/npm/hao-chatbot/dist/hao-chatbot.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hao-chatbot/dist/index.umd.js"></script>
 ```
 
 ### 指定版本
 ```html
-<script src="https://unpkg.com/hao-chatbot@1.0.0/dist/hao-chatbot.standalone.umd.js"></script>
+<script src="https://unpkg.com/hao-chatbot@1.0.0/dist/index.standalone.umd.js"></script>
 ```
 
 ## 📚 示例

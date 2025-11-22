@@ -21,3 +21,10 @@ export interface IChatbotProps {
   primaryColor?: string | { from: string; to: string }
   avatarUrl?: string
 }
+
+export type AttachmentType = 'media' | 'code-file' | 'code-folder'
+
+export interface IAttachmentPayload {
+  type: AttachmentType
+  files: File[]
+}

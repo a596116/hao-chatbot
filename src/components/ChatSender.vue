@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-sender">
+  <div class="chat-sender" :class="{ 'is-loading': loading }">
     <Sender
       ref="senderRef"
       v-model="messageText"
@@ -8,16 +8,23 @@
       :submit-btn-disabled="!messageText.trim()"
       clearable
       allow-speech
+      variant="updown"
       @submit="handleSubmit"
       @cancel="handleCancel"
       @recordingChange="handleRecordingChange"
-    />
+    >
+      <template #prefix>
+        <AttachmentMenu @select="handleAttachmentSelect" />
+      </template>
+    </Sender>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { Sender } from 'vue-element-plus-x'
+import AttachmentMenu from './AttachmentMenu.vue'
+import type { IAttachmentPayload } from '@/types/type'
 
 interface ChatSenderProps {
   modelValue: string
@@ -34,6 +41,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'submit'): void
   (e: 'cancel'): void
+  (e: 'attachment', payload: IAttachmentPayload): void
 }>()
 
 const senderRef = ref<any>()
@@ -194,6 +202,10 @@ const handleCancel = () => {
   emit('cancel')
 }
 
+const handleAttachmentSelect = (payload: IAttachmentPayload) => {
+  emit('attachment', payload)
+}
+
 const focus = (position: 'start' | 'end' | 'all' = 'end') => {
   senderRef.value?.focus(position)
 }
@@ -212,13 +224,14 @@ defineExpose({
 <style scoped>
 .chat-sender {
   padding: 8px;
-  background: white;
-  border-top: 1px solid #e8e8e8;
+  background: #f5f7fa;
+  /* border-top: 1px solid #e8e8e8; */
 }
 
 /* 自定義 Sender 組件樣式 */
 .chat-sender :deep(.el-sender) {
   width: 100%;
+  /* background-color: #fff; */
 }
 
 .chat-sender :deep(.el-sender__inner) {
@@ -231,17 +244,77 @@ defineExpose({
 }
 
 .chat-sender :deep(.el-sender__submit-btn) {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.chat-sender :deep(.el-sender__submit-btn:hover:not(:disabled)) {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  transform: none;
+  box-shadow: none;
+}
+
+.chat-sender :deep(.el-sender__submit-btn:active:not(:disabled)) {
+  transform: scale(0.96);
+}
+
+.chat-sender :deep(.el-sender__submit-btn:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 統一按鈕風格 - 改成和 attachment 按鈕一樣的樣式 */
+.chat-sender :deep(.el-send-button .el-button) {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #666;
+  transition: all 0.2s ease;
+}
+.chat-sender:not(.is-loading) :deep(.el-send-button:first-child .el-button) {
   background: var(
     --chatbot-primary-gradient,
     linear-gradient(135deg, #409eff 0%, #337ecc 100%)
   );
-  border: none;
-  border-radius: 12px;
+  color: #fff;
 }
 
-.chat-sender :deep(.el-sender__submit-btn:hover:not(:disabled)) {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--chatbot-primary, #409eff) 40%, transparent);
+.chat-sender
+  :deep(.el-send-button:not(:first-child) .el-button:hover:not(:disabled)) {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  /* transform: none; */
+  box-shadow: none;
+}
+
+.chat-sender
+  :deep(.el-send-button:first-child .el-button:hover:not(:disabled)) {
+  /* background: var(
+    --chatbot-primary-gradient,
+    linear-gradient(135deg, #409eff 0%, #337ecc 100%)
+  ); */
+  opacity: 0.9;
+  color: #fff;
+}
+
+.chat-sender :deep(.el-button.is-circle:active:not(:disabled)) {
+  transform: scale(0.96);
+}
+
+.chat-sender :deep(.el-button.is-circle:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

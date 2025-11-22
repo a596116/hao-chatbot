@@ -31,24 +31,35 @@
           @toggle-fullscreen="toggleFullscreen"
         />
 
-        <!-- 聊天內容區域 -->
-        <ChatList
-          ref="chatListRef"
-          :messages="messages"
-          :is-loading="isLoading"
-          :max-height="'100%'"
-          :avatar-url="avatarUrl"
-        />
+        <div class="chatbot-content">
+          <!-- 聊天內容區域 -->
+          <ChatList
+            v-if="messages.length > 0"
+            ref="chatListRef"
+            :messages="messages"
+            :is-loading="isLoading"
+            :max-height="'100%'"
+            :avatar-url="avatarUrl"
+          />
 
-        <!-- 輸入區域 -->
-        <ChatSender
-          ref="chatSenderRef"
-          v-model="inputMessage"
-          :placeholder="placeholder"
-          :loading="isLoading"
-          @submit="handleSend"
-          @cancel="handleCancel"
-        />
+          <div v-else class="chatbot-content-welcome">
+            <Typewriter
+              content="您好！我是 AI 助手，有什麼可以幫助您的嗎？"
+              typing
+            />
+          </div>
+
+          <!-- 輸入區域 -->
+          <ChatSender
+            ref="chatSenderRef"
+            v-model="inputMessage"
+            :placeholder="placeholder"
+            :loading="isLoading"
+            @submit="handleSend"
+            @cancel="handleCancel"
+            @attachment="handleAttachment"
+          />
+        </div>
       </div>
     </transition>
   </div>
@@ -59,8 +70,9 @@ import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
 import ChatHeader from './ChatHeader.vue'
 import ChatList from './ChatList.vue'
 import ChatSender from './ChatSender.vue'
-import { IChatbotProps, IMessage } from '@/types/type'
+import { IChatbotProps, IMessage, IAttachmentPayload } from '@/types/type'
 import { DEFAULT_AVATAR_SVG } from '@/utils/constants'
+import { Typewriter } from 'vue-element-plus-x'
 
 const props = withDefaults(defineProps<IChatbotProps>(), {
   title: 'AI 助手',
@@ -77,17 +89,18 @@ const avatarUrl = computed(() => props.avatarUrl || DEFAULT_AVATAR_SVG)
 const emit = defineEmits<{
   (e: 'message-sent', message: string): void
   (e: 'message-received', message: string): void
+  (e: 'attachment-selected', payload: IAttachmentPayload): void
 }>()
 
 const isOpen = ref(false)
 const isFullscreen = ref(false)
 const inputMessage = ref('')
 const messages = ref<IMessage[]>([
-  {
-    role: 'assistant',
-    content: '您好！我是 AI 助手，有什麼可以幫助您的嗎？',
-    timestamp: Date.now(),
-  },
+  // {
+  //   role: 'assistant',
+  //   content: '您好！我是 AI 助手，有什麼可以幫助您的嗎？',
+  //   timestamp: Date.now(),
+  // },
 ])
 const isLoading = ref(false)
 const chatListRef = ref<any>()
@@ -191,6 +204,10 @@ const toggleFullscreen = () => {
 
 const handleCancel = () => {
   isLoading.value = false
+}
+
+const handleAttachment = (payload: IAttachmentPayload) => {
+  emit('attachment-selected', payload)
 }
 
 const handleSend = async () => {
@@ -403,7 +420,7 @@ onUnmounted(() => {
 /* 聊天容器 */
 .hao-chatbot-container {
   position: fixed;
-  background: white;
+  background: #f5f7fa;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   display: flex;
@@ -453,5 +470,23 @@ onUnmounted(() => {
     right: 16px !important;
     bottom: 16px !important;
   }
+}
+
+.chatbot-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: column;
+  /* height: 100%; */
+  justify-content: center;
+}
+
+.chatbot-content-welcome {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  font-size: 16px;
 }
 </style>
